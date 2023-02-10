@@ -1,3 +1,7 @@
-make all: *.c
-	mkdir bin
-	gcc -Wall -o bin/romanToInteger romanToInteger.c
+NOME=romanToInteger
+
+make all: $(NOME).c
+	gcc -Wall -o $(NOME) $(NOME).c
+
+make run: $(NOME)
+	./$(NOME)
