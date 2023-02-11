@@ -18,6 +18,8 @@ Compilar: `make all`
 
 Executar: `make run`
 
+Testar: `make test`
+
 ## Partes funcionais
 
 - Tudo está funcionando conforme esperado.
