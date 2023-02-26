@@ -20,18 +20,14 @@ Executar: `make run`
 
 Testar: `make test`
 
-## Partes funcionais
+## Funcionamento
 
-- Tudo está funcionando conforme esperado.
-
-## Partes não funcionais
-
-- Não há partes não funcionais.
+Tudo está funcionando conforme esperado.
 
 ## Dificuldades
 
-- Encontrei bastante dificuldade na percepção e formulação do algoritmo, mas após isso consegui implementar facilmente as funções para o cálculo da série de Fibonacci, já que já tinha conhecimento das duas formas que implementei no código.
+Encontrei bastante dificuldade na percepção e formulação do algoritmo, mas após isso consegui implementar facilmente as funções para o cálculo da série de Fibonacci, já que já tinha conhecimento das duas formas que implementei no código.
 
 ## Observações
 
-- Não tenho observações a respeito.
+Não tenho observações a respeito.
