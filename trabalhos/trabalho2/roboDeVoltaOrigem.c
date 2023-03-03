@@ -1,3 +1,11 @@
+/**********************************************************************************
+ * Trabalho prático 2 - Robô de volta à origem                                    *
+ *                                                                                *
+ * Autor: Gabriel Leite Bessa                                                     *
+ * Data: 03/03/2022                                                               *
+ *                                                                                *
+ **********************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -25,7 +33,7 @@ int main() {
         printf("falso\n");
 
     free(movimentos);
-    
+
     return 0;
 }
 
