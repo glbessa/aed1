@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include <math.h>
 
-
 // list node struct
 struct ListNode {
     int val;
@@ -18,29 +17,6 @@ void Clear(struct ListNode *head);
 
 int main(int argc, char **argv)
 {
-    /*
-    struct ListNode *n1 = (struct ListNode *) malloc(sizeof(struct ListNode));
-    struct ListNode *n2 = (struct ListNode *) malloc(sizeof(struct ListNode));
-    struct ListNode *n3 = (struct ListNode *) malloc(sizeof(struct ListNode));
-    struct ListNode *n4 = (struct ListNode *) malloc(sizeof(struct ListNode));
-    struct ListNode *n5 = (struct ListNode *) malloc(sizeof(struct ListNode));
-    if (n1 == NULL || n2 == NULL || n3 == NULL || n4 == NULL || n5 == NULL) {
-        printf("Error when allocating memory! :(\n");
-        exit(-1);
-    }
-
-    n1->val=0;
-    n1->next=n2;
-    n2->val=1;
-    n2->next=n3;
-    n3->val=1;
-    n3->next=n4;
-    n4->val=0;
-    n4->next=NULL;//n5;
-    n5->val=0;
-    n5->next=NULL;
-    */
-
     int length = 0;
     int value = 0;
     struct ListNode *head = NULL;
@@ -148,6 +124,14 @@ int GetListLength(struct ListNode *head) {
     return length;
 }
 
+/*
+===============================================
+struct ListNode *Push(struct ListNode *head, int index, int value)
+
+    Insert a value into the list.
+    
+===============================================
+*/
 struct ListNode *Push(struct ListNode *head, int index, int value) {
     struct ListNode *newNode = (struct ListNode *) malloc(sizeof(struct ListNode));
     if (newNode == NULL)
@@ -185,6 +169,14 @@ struct ListNode *Push(struct ListNode *head, int index, int value) {
     return head;
 }
 
+/*
+===============================================
+void Clear(struct ListNode *head)
+
+    Clear all items into the list.
+
+===============================================
+*/
 void Clear(struct ListNode *head) {
     if (head == NULL)
         return;
