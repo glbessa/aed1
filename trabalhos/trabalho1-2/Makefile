@@ -1,7 +1,7 @@
 NOME=isPalindrome
 SAVE_TESTS=valgrind_result
 COMPILER=gcc
-COMPILER_ARGS=-Wall -lm -g -o $(NOME)
+COMPILER_ARGS=-Wall -g -o $(NOME)
 
 make all: $(NOME).c
 	$(COMPILER) $(COMPILER_ARGS) $(NOME).c

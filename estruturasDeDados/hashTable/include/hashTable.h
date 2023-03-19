@@ -1,0 +1,1 @@
+// aplicar teorema fundamental da aritmetica

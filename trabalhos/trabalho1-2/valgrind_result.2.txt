@@ -1,0 +1,15 @@
+==7586== Memcheck, a memory error detector
+==7586== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==7586== Using Valgrind-3.20.0 and LibVEX; rerun with -h for copyright info
+==7586== Command: ./roboDeVoltaOrigem
+==7586== Parent PID: 7585
+==7586== 
+==7586== 
+==7586== HEAP SUMMARY:
+==7586==     in use at exit: 0 bytes in 0 blocks
+==7586==   total heap usage: 3 allocs, 3 frees, 25,121 bytes allocated
+==7586== 
+==7586== All heap blocks were freed -- no leaks are possible
+==7586== 
+==7586== For lists of detected and suppressed errors, rerun with: -s
+==7586== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

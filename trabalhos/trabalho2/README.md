@@ -1,22 +1,16 @@
-# Trabalho prático 2 - Robô de volta à origem
+# Trabalho prático 2 - Is Palindrome?
 
 Autor: Gabriel Leite Bessa [gabriel.lb@inf.ufpel.edu.br](mailto:gabriel.lb@inf.ufpel.edu.br)
 
 Turma M1
 
-Data: 03/03/2023
+Data: 19/03/2023
 
 [Vídeo de demonstração]()
 
 ## Proposta
 
-Há um robô começando na posição (0, 0), a origem, em um plano 2D. Dada uma sequência de seus movimentos, julgue se este robô termina em (0, 0) após completar seus movimentos.
-
-Você recebe uma sequência de movimentos que representam a sequência de movimentos do robô, onde moves[i] representa seu i-ésimo movimento. Os movimentos válidos são 'R' (direita/right), 'L' (esquerda/left), 'U' (cima/up) e 'D' (para baixo/down).
-
-Faça uma função que retorna verdadeiro se o robô retornar à origem após terminar todos os seus movimentos, ou falso caso contrário.
-
-`bool judgeCircle(char * moves)`
+Dado o cabeçalho de uma lista encadeada, retorne true se for um palíndromo ou falso caso contrário.
 
 ## Como executar
 
@@ -32,7 +26,7 @@ Tudo está funcionando conforme esperado.
 
 ## Dificuldades
 
-Não encontrei dificuldades na realização do exercício.
+Encontrei dificuldades quanto ao casting para ponto flutuante que estava tentando fazer mas não estava funcionando.
 
 ## Observações
 
