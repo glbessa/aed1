@@ -129,7 +129,7 @@ int GetListLength(struct ListNode *head) {
 struct ListNode *Push(struct ListNode *head, int index, int value)
 
     Insert a value into the list.
-    
+
 ===============================================
 */
 struct ListNode *Push(struct ListNode *head, int index, int value) {

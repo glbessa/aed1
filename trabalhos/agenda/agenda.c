@@ -1,13 +1,7 @@
 /**********************************************************************************
- * Exercício 3 - Lista 2                                                          *
+ * Agenda                                                                         *
  *                                                                                *
- * Faça um programa que armazena nomes em uma mesma string, que deve crescer ou   *
- * diminuir conforme os nomes forem colocados ou retirados. Deve apresentar o se- *
- * guinte menu:                                                                   *
- * 1) Adicionar nome                                                              *
- * 2) Remover nome                                                                *
- * 3) Listar                                                                      *
- * 4) Sair                                                                        *
+ *                                                                                *
  *                                                                                *
  **********************************************************************************/
 
@@ -16,122 +10,148 @@
 #include <string.h>
 
 #define ASC_ORDER 1
-#define DESC_ORDER -1
 #define NAME_LENGTH 9
-#define PHONE_LENGTH 15 // +55053984655136\0
+#define PHONE_LENGTH 18 
 
-// **sentinel => *len **begin **end
-// **nodes => *name *age *phone *prev *next
-// heap => ordered queue
+// Sentinel structure
+// void **sentinel
+// *(sentinel + 0) => int *length
+// *(sentinel + 1) => void **firstNode
+// *(sentinel + 2) => void **lastNode
 
+// Node structure
+// void **node
+// *(node + 0) => char *name
+// *(node + 1) => short *age
+// *(node + 2) => char *phone
+// *(node + 3) => void **previousNode
+// *(node + 4) => void **nextNode
+
+void InitializeNameAgePhone(char **name, short **age, char **phone);
 void PrintMenu();
+void PrintInfo(char *name, short *age, char *phone);
 void **Reset(void **sentinel);
 void Clear(void **sentinel);
 void Push(void **sentinel, char *name, short *age, char *phone);
 void Pop(void **sentinel, char **name, short **age, char **phone);
-void List(void **sentinel);
+void RemoveByName(void ***sentinel, char *targetName);
+void List(void ***sentinel);
+
+void **GetFirstNode(void **sentinel);
+int *GetLength(void **sentinel);
+void SetLength(void **sentinel, int *length);
+void IncrementLength(void **sentinel);
+void DecrementLength(void **sentinel);
+void **GetFirstNode(void **sentinel);
+void SetFirstNode(void **sentinel, void **node);
+void **GetLastNode(void **sentinel);
+void SetLastNode(void **sentinel, void **node);
+char *GetNodeName(void **node);
+void SetNodeName(void **node, char *name);
+short *GetNodeAge(void **node);
+void SetNodeAge(void **node, short *age);
+char *GetNodePhone(void **node);
+void SetNodePhone(void **node, char *phone);
+void **GetPreviousNode(void **node);
+void SetPreviousNode(void **node, void **prevNode);
+void **GetNextNode(void **node);
+void SetNextNode(void **node, void **nextNode);
 
 int main(int argc, char **argv) {
-    void **sentinel = Reset(NULL);
-    char **name = (char **) malloc(sizeof(char *));
-    if (name == NULL) {
-        printf("Not enough memory :(\n");
-        exit(-1);
-    }
-    *name = (char *) malloc(sizeof(char) * (NAME_LENGTH + 1));
-    if (*name == NULL) {
-        printf("Not enough memory :(\n");
-        exit(-1);
-    }
+    void **sentinel = Reset(NULL); // Initializing heap
 
-    short **age = (short **) malloc(sizeof(short *));
-    if (age == NULL) {
-        printf("Not enough memory :(\n");
-        exit(-1);
-    }
-    *age = (short *) malloc(sizeof(short));
-    if (*age == NULL) {
-        printf("Not enough memory :(\n");
-        exit(-1);
-    }
+    char *name, *phone;
+    short *age;
 
-    char **phone = (char **) malloc(sizeof(char *));
-    if (phone == NULL) {
-        printf("Not enough memory :(\n");
-        exit(-1);
-    }
-    *phone = (char *) malloc(sizeof(char) * (PHONE_LENGTH + 1));
-    if (*phone == NULL) {
-        printf("Not enough memory :(\n");
-        exit(-1);
-    }
+    InitializeNameAgePhone(&name, &age, &phone);
 
     short *option = (short *) malloc(sizeof(short));
     if (option == NULL) {
+        free(name);
+        free(age);
+        free(phone);
         printf("Not enough memory :(\n");
         exit(-1);
     }
-    *option = 4;
+    *option = 5;
 
     do {
+        PrintMenu();
+        printf(">> ");
         scanf("%hi", option);
+        scanf("%*c");
 
         switch (*option)
         {
             case 1:
+                // Routine to add an entry to the agenda
                 printf("Name: ");
-                scanf("%9s", *name);
+                scanf("%[^\n]*c", name);
 
                 printf("Age: ");
-                scanf("%hi", *age);
+                scanf("%hi", age);
+                scanf("%*c");
+                fflush(stdin);
 
                 printf("Phone: ");
-                scanf("%15s", *phone);
+                scanf("%[^\n]*c", phone);
 
-                Push(sentinel, *name, *age, *phone);
+                Push(sentinel, name, age, phone);
                 break;
+
             case 2:
-                Pop(sentinel, name, age, phone);
-
-                printf("Name: %s\nAge: %hi\nPhone: %s\n", *name, *(*age), *phone);
-
-                free(*name);
-                free(*age);
-                free(*phone);
-
-                *name = (char *) malloc(sizeof(char) * (NAME_LENGTH + 1));
-                if (*name == NULL) {
-                    printf("Not enough memory :(\n");
-                    exit(-1);
+                // Routine to list all agenda entries
+                if (*GetLength(sentinel) <= 0) {
+                    printf("Empty agenda!\n");
+                    break;
                 }
 
-                *age = (short *) malloc(sizeof(short));
-                if (*age == NULL) {
-                    printf("Not enough memory :(\n");
-                    exit(-1);
+                List(&sentinel);
+                break;
+
+            case 3:
+                // Routine to remove the agenda first entry
+                if (*GetLength(sentinel) <= 0) {
+                    printf("Empty agenda!\n");
+                    break;
                 }
 
-                *phone = (char *) malloc(sizeof(char) * (PHONE_LENGTH + 1));
-                if (*phone == NULL) {
-                    printf("Not enough memory :(\n");
-                    exit(-1);
-                }
+                free(name);
+                free(age);
+                free(phone);
+
+                Pop(sentinel, &name, &age, &phone); // Problem here solved
+                PrintInfo(name, age, phone);
+
+                free(name);
+                free(age);
+                free(phone);
+
+                InitializeNameAgePhone(&name, &age, &phone);
 
                 break;
-            case 3:
-                List(sentinel);
+
+            case 4:
+                // Routine to remove all entries with the informed name
+                if (*GetLength(sentinel) <= 0) {
+                    printf("Empty agenda!\n");
+                    break;
+                }
+
+                scanf("%9s", name);
+                RemoveByName(&sentinel, name);
                 break;
         }
 
-    } while (*option != 4);
+    } while (*option != 5);
 
+    // Freeing dynamically alocated memory
     free(option);
-    free(*name);
     free(name);
-    free(*age);
     free(age);
-    free(*phone);
     free(phone);
+
+    // Freeing dynamically allocated data structure
     Clear(sentinel);
     free(*sentinel);
     free(sentinel);
@@ -139,18 +159,178 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-void PrintMenu() {
-    printf("\n==================\n");
-    printf("1) Adicionar pessoa\n");
-    printf("2) Remover pessoa\n");
-    printf("3) Listar\n");
-    printf("4) Sair\n");
-    printf("==================\n");
+// ---------------------------------------------------------
+// Lasy functions ------------------------------------------
+
+void InitializeNameAgePhone(char **name, short **age, char **phone) {
+    if (name == NULL || age == NULL || phone == NULL) {
+        printf("Please, contact the developer!\n");
+        exit(-1);
+    }
+    
+    *name = (char *) malloc(sizeof(char) * (NAME_LENGTH + 1));
+    if (*name == NULL) {
+        printf("Not enough memory :(\n");
+        exit(-1);
+    }
+
+    *age = (short *) malloc(sizeof(short));
+    if (*age == NULL) {
+        free(*name);
+        printf("Not enough memory :(\n");
+        exit(-1);
+    }
+
+    *phone = (char *) malloc(sizeof(char) * (PHONE_LENGTH + 1));
+    if (*phone == NULL) {
+        free(*name);
+        free(*age);
+        printf("Not enough memory :(\n");
+        exit(-1);
+    }
 }
 
-void PrintInfo() {
-    
+
+// ----------------------------------------------------------
+// CLI functions --------------------------------------------
+
+void PrintMenu() {
+    printf("=========================\n");
+    printf("1) Add entry\n");
+    printf("2) List all entries\n");
+    printf("3) Remove first entry\n");
+    printf("4) Remove entries by name\n");
+    printf("5) Exit\n");
+    printf("=========================\n");
 }
+
+void PrintHeader(char *borderChar) {
+    printf("-----------------------------------\n");
+    printf("|   Name   | Age |      Phone     |\n");
+    printf("-----------------------------------\n");
+}
+
+void PrintInfo(char *name, short *age, char *phone) {
+    int *nameLen = (int *) malloc(sizeof(int));
+    if (nameLen == NULL)
+        return;
+    *nameLen = strlen(name);
+
+    char *ageStr = (char *) malloc(sizeof(char) * 6);
+    if (ageStr == NULL) {
+        free(nameLen);
+        return;
+    }
+    sprintf(ageStr, "%hi", *age);
+
+    int *ageLen = (int *) malloc(sizeof(int));
+    if (ageLen == NULL) {
+        free(nameLen);
+        free(ageStr);
+        return;
+    }
+    *ageLen = strlen(ageStr);
+
+    int *phoneLen = (int *) malloc(sizeof(int));
+    if (phoneLen == NULL) {
+        free(nameLen);
+        free(ageStr);
+        free(ageLen);
+        return;
+    }
+    *phoneLen = strlen(phone);
+
+    int *borderLen = (int *) malloc(sizeof(int));
+    if (borderLen == NULL) {
+        free(nameLen);
+        free(ageStr);
+        free(ageLen);
+        free(phoneLen);
+        return;
+    }
+    *borderLen = (10 + *nameLen + *phoneLen + *ageLen);
+
+    char *border = (char *) malloc(sizeof(char) * (*borderLen + 1));
+    if (border == NULL) {
+        free(nameLen);
+        free(ageStr);
+        free(ageLen);
+        free(phoneLen);
+        free(borderLen);
+        return;
+    }
+
+    memset(border, '-', *borderLen);
+    *(border + *borderLen) = '\0';
+
+    printf("%s\n", border);
+    printf("| %s | %hi | %s |\n", name, *age, phone);
+    printf("%s\n", border);
+
+    free(nameLen);
+    free(ageStr);
+    free(ageLen);
+    free(phoneLen);
+    free(borderLen);
+    free(border);
+}
+
+// ----------------------------------------------------------
+// Extended Heap functions ----------------------------------
+
+void List(void ***sentinel) {
+    void **newSentinel = Reset(NULL);
+
+    char *name;
+    short *age;
+    char *phone;
+
+    PrintHeader(NULL);
+
+    while (*GetLength(*sentinel) > 0 && GetFirstNode(*sentinel) != NULL) {
+        Pop(*sentinel, &name, &age, &phone);
+        Push(newSentinel, name, age, phone);
+
+        PrintInfo(name, age, phone);
+
+        free(name);
+        free(age);
+        free(phone); // double free
+    }
+
+    free(**sentinel);
+    free(*sentinel);
+
+    *sentinel = newSentinel;
+}
+
+void RemoveByName(void ***sentinel, char *targetName) {
+    void **newSentinel = Reset(NULL);
+
+    char *name;
+    short *age;
+    char *phone;   
+
+    while (*GetLength(*sentinel) > 0 && GetFirstNode(*sentinel) != NULL) {
+        Pop(*sentinel, &name, &age, &phone);
+
+        if (strcmp(name, targetName) != 0) {
+            Push(newSentinel, name, age, phone);
+        }
+
+        free(name);
+        free(age);
+        free(phone);
+    }
+
+    free(**sentinel);
+    free(*sentinel);
+
+    *sentinel = newSentinel;
+}
+
+// ------------------------------------------------------------
+// Heap functions ---------------------------------------------
 
 void **Reset(void **sentinel) {
     if (sentinel != NULL) {
@@ -168,128 +348,202 @@ void **Reset(void **sentinel) {
     int *length = (int *) malloc(sizeof(int));
     if (length == NULL) {
         printf("Not enough memory :(\n");
+        free(newSentinel);
         exit(-1);
     }
-
     *length = 0;
 
-    *(newSentinel) = length;   // heap length
-    *(newSentinel + 1) = NULL; // first node
-    *(newSentinel + 2) = NULL; // last node
+    SetLength(newSentinel, length); // heap length
+    SetFirstNode(newSentinel, NULL); // first node
+    SetLastNode(newSentinel, NULL); // last node
 
     return newSentinel;
 }
 
 void Clear(void **sentinel) {
-    int *length = (int *) *(sentinel);
-    while (*length > 0) {
-        char **name = (char **) malloc(sizeof(char *));
-        short **age = (short **) malloc(sizeof(short *));
-        char **phone = (char **) malloc(sizeof(char *));
-        Pop(sentinel, name, age, phone);
-        free(*name);
+    char *name;
+    short *age;
+    char *phone;
+    while (*GetLength(sentinel) > 0 && GetFirstNode(sentinel) != NULL) {
+        Pop(sentinel, &name, &age, &phone);
         free(name);
-        free(*age);
         free(age);
-        free(*phone);
         free(phone);
     }
 }
 
 void Push(void **sentinel, char *name, short *age, char *phone) {
-    if (sentinel == NULL)
-        return;
-    else if (name == NULL)
-        return;
-    else if (age == NULL)
-        return;
-    else if (phone == NULL)
+    if (sentinel == NULL || name == NULL || age == NULL || phone == NULL)
         return;
 
-    void **node = (void *) malloc(sizeof(void *) * 5);
-    if (node == NULL) {
-        printf("Not enough memory :(\n");
-        exit(-1);
-    }
-
-    char *nodeName = (char *) malloc(sizeof(char) * (NAME_LENGTH + 1));
-    strcpy(nodeName, name);
-    *(node) = nodeName;
-
-    short *nodeAge = (short *) malloc(sizeof(short));
-    *nodeAge = *age;
-    *(node + 1) = nodeAge;
-
-    char *nodePhone = (char *) malloc(sizeof(char) * (PHONE_LENGTH + 1));
-    strcpy(nodePhone, phone);
-    *(node + 2) = nodePhone;
-
-    *(node + 3) = NULL;
-    *(node + 4) = NULL;
-
-    void **tempNode = *(sentinel + 1);
-    if (tempNode == NULL) {
-        *(sentinel + 1) = node; // first node
-        *(sentinel + 2) = node; // last node
-        
-        int *length = (int *) *(sentinel);
-        *(length) = *(length) + 1;
-
+    void **node = (void **) malloc(sizeof(void *) * 5);
+    if (node == NULL)
         return;
-    }
 
-    void **prevNode = tempNode;
+    char *nodeName, *nodePhone;
+    short *nodeAge;
 
-    while (strcmp(*(node), *(tempNode)) == ASC_ORDER) {
-        if (*(tempNode + 4) == NULL) {
-            *(tempNode + 4) = node; // tempNode next node
-            *(sentinel + 2) = node; // sentinel last node
-            *(node + 3) = tempNode; // node prev node
+    InitializeNameAgePhone(&nodeName, &nodeAge, &nodePhone);
     
-            int *length = (int *) *(sentinel);
-            *(length) = *(length) + 1;
+    strcpy(nodeName, name);
+    SetNodeName(node, nodeName);
+    
+    *nodeAge = *age;
+    SetNodeAge(node, nodeAge);
 
+    strcpy(nodePhone, phone);
+    SetNodePhone(node, nodePhone);
+
+    SetPreviousNode(node, NULL);
+    SetNextNode(node, NULL);
+
+    void **tempNode = GetFirstNode(sentinel);
+    if (tempNode == NULL) {
+        // Identify that this is heap first node
+        SetFirstNode(sentinel, node);
+        SetLastNode(sentinel, node);
+        
+        IncrementLength(sentinel);
+        return;
+    }
+
+    while (strcmp(GetNodeName(node), GetNodeName(tempNode)) >= ASC_ORDER) {
+        // While new node name is alphabetically after tempNode name...
+        if (GetNextNode(tempNode) == NULL) {
+            // Check if there isn't more nodes in the heap and adding at the end of the heap
+            SetNextNode(tempNode, node);
+            SetLastNode(sentinel, node);
+            SetPreviousNode(node, tempNode);
+    
+            // Increment length
+            IncrementLength(sentinel);
             return;
         }
 
-        tempNode = *(tempNode + 4);
+        tempNode = GetNextNode(tempNode);
     }
 
-    *(node + 3) = *(tempNode + 3);
-    *(tempNode + 3) = node;
-    *(node + 4) = tempNode;
-    
-    int *length = (int *) *(sentinel);
-    *(length) = *(length) + 1;
+    if (GetFirstNode(sentinel) == tempNode)
+        SetFirstNode(sentinel, node);
+    else
+        SetNextNode(GetPreviousNode(tempNode), node);
+
+    SetPreviousNode(node, GetPreviousNode(tempNode));
+    SetPreviousNode(tempNode, node);
+    SetNextNode(node, tempNode);
+
+    // Increment length
+    IncrementLength(sentinel);
 }
 
 void Pop(void **sentinel, char **name, short **age, char **phone) {
     if (sentinel == NULL)
         return;
 
-    void **firstNode = *(sentinel + 1);
+    void **firstNode = GetFirstNode(sentinel);
     if (firstNode == NULL)
         return;
 
-    *(name) = (char *) *(firstNode);
-    *(age) = (short *) *(firstNode + 1);
-    *(phone) = (char *) *(firstNode + 2);
+    *(name) = GetNodeName(firstNode);
+    *(age) = GetNodeAge(firstNode);
+    *(phone) = GetNodePhone(firstNode);
 
-    if (*(firstNode + 4) != NULL) {
-        void **nextNode = *(firstNode + 4);
-        *(nextNode + 3) = NULL;     // previuous node
-        *(sentinel + 1) = nextNode;
+    void **nextNode = GetNextNode(firstNode);
+
+    if (nextNode != NULL) {
+        SetNextNode(firstNode, NULL);
+        SetPreviousNode(nextNode, NULL);
+        SetFirstNode(sentinel, nextNode);
     }
     else {
-        *(sentinel + 1) = NULL; // first node
-        *(sentinel + 2) = NULL; // last node
+        // If there isn't more node in the heap
+        SetFirstNode(sentinel, NULL);
+        SetLastNode(sentinel, NULL);
     }
 
-    int *length = (int *) *(sentinel);
-    *(length) = *(length) - 1;
+    DecrementLength(sentinel);
     free(firstNode);
 }
 
-void List(void **sentinel) {
+// ---------------------------------------------------
+// Sentinel functions --------------------------------
 
+int *GetLength(void **sentinel) {
+    int *length = (int *) *sentinel;
+    return length;
 }
+
+void SetLength(void **sentinel, int *length) {
+    *sentinel = length;
+}
+
+void IncrementLength(void **sentinel) {
+    int *len = (int *) *sentinel;
+    *len = *len + 1;
+}
+
+void DecrementLength(void **sentinel) {
+    int *len = (int *) *sentinel;
+    *len = *len - 1;
+}
+
+void **GetFirstNode(void **sentinel) {
+    return *(sentinel + 1);
+}
+
+void SetFirstNode(void **sentinel, void **node) {
+    *(sentinel + 1) = node;
+}
+
+void **GetLastNode(void **sentinel) {
+    return *(sentinel + 2);
+}
+
+void SetLastNode(void **sentinel, void **node) {
+    *(sentinel + 2) = node;
+}
+
+// -----------------------------------------------------
+// Node functions --------------------------------------
+
+char *GetNodeName(void **node) {
+    return (char *) *node;
+}
+
+void SetNodeName(void **node, char *name) {
+    *(node) = name;
+}
+
+short *GetNodeAge(void **node) {
+    return (short *) *(node + 1);
+}
+
+void SetNodeAge(void **node, short *age) {
+    *(node + 1) = age;
+}
+
+char *GetNodePhone(void **node) {
+    return (char *) *(node + 2);
+}
+
+void SetNodePhone(void **node, char *phone) {
+    *(node + 2) = phone;
+}
+
+void **GetPreviousNode(void **node) {
+    return *(node + 3);
+}
+
+void SetPreviousNode(void **node, void **prevNode) {
+    *(node + 3) = prevNode;
+}
+
+void **GetNextNode(void **node) {
+    return *(node + 4);
+}
+
+void SetNextNode(void **node, void **nextNode) {
+    *(node + 4) = nextNode;
+}
+
+// ------------------------------------------------------

@@ -1,0 +1,14 @@
+==197857== Memcheck, a memory error detector
+==197857== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==197857== Using Valgrind-3.20.0 and LibVEX; rerun with -h for copyright info
+==197857== Command: ./agenda
+==197857== Parent PID: 197856
+==197857== 
+==197857== 
+==197857== HEAP SUMMARY:
+==197857==     in use at exit: 0 bytes in 0 blocks
+==197857==   total heap usage: 237 allocs, 237 frees, 11,258 bytes allocated
+==197857== 
+==197857== All heap blocks were freed -- no leaks are possible
+==197857== 
+==197857== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
