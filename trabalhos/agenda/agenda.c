@@ -1,549 +1,704 @@
-/**********************************************************************************
- * Agenda                                                                         *
- *                                                                                *
- *                                                                                *
- *                                                                                *
- **********************************************************************************/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 
-#define ASC_ORDER 1
+#define ASC_ORDER -1
+#define DESC_ORDER 1
 #define NAME_LENGTH 9
-#define PHONE_LENGTH 18 
+#define AGE_LENGTH 5 // Maximum value length that a short can store
+#define PHONE_LENGTH 18
 
-// Sentinel structure
-// void **sentinel
-// *(sentinel + 0) => int *length
-// *(sentinel + 1) => void **firstNode
-// *(sentinel + 2) => void **lastNode
+static void *dontForgetMe = NULL; // Used only in FreePBufferOnExit()
+
+// pBuffer structure
+// void *pBuffer
+// 0 => int heapLength
+// 1 => int (*orderPolicy) (void *node1, void *node2)
+// 2 => int order
+// 3 => void *firstNode
+// 4 => void *lastNode
+// 5 => short option
+// 6 => char *name
+// 7 => short age
+// 8 => char *phone
+// 9 => int tempHeapLength
+// 10 => int (*orderTempHeapPolicy) (void *node1, void *node2)
+// 11 => int tempHeapOrder
+// 12 => void *tempHeapFirstNode
+// 13 => void *tempHeapLastNode
+// 14 => char *searchName
+// 15 => char *formattedName
+// 16 => short formattedAge
+// 17 => char *formattedPhone
 
 // Node structure
 // void **node
-// *(node + 0) => char *name
-// *(node + 1) => short *age
-// *(node + 2) => char *phone
-// *(node + 3) => void **previousNode
-// *(node + 4) => void **nextNode
+// 0 => char *name
+// 1 => short *age
+// 2 => char *phone
+// 3 => void **previousNode
+// 4 => void **nextNode
 
-void InitializeNameAgePhone(char **name, short **age, char **phone);
+void AddEntryOpt(void *pBuffer);
+void ListEntriesOpt(void *pBuffer);
+void RemoveFirstEntryOpt(void *pBuffer);
+void RemoveEntryByNameOpt(void *pBuffer);
+void ChangeOrderOpt(void *pBuffer);
+
+int AlphabeticalOrderPolicy(void *value1, void *value2);
+int AgeOrderPolicy(void *value1, void *value2);
+
 void PrintMenu();
-void PrintInfo(char *name, short *age, char *phone);
-void **Reset(void **sentinel);
-void Clear(void **sentinel);
-void Push(void **sentinel, char *name, short *age, char *phone);
-void Pop(void **sentinel, char **name, short **age, char **phone);
-void RemoveByName(void ***sentinel, char *targetName);
-void List(void ***sentinel);
+void PrintInfo(void *pBuffer);
+void PrintOrderPolicyMenu();
+void PrintOrderPriorityMenu();
 
-void **GetFirstNode(void **sentinel);
-int *GetLength(void **sentinel);
-void SetLength(void **sentinel, int *length);
-void IncrementLength(void **sentinel);
-void DecrementLength(void **sentinel);
-void **GetFirstNode(void **sentinel);
-void SetFirstNode(void **sentinel, void **node);
-void **GetLastNode(void **sentinel);
-void SetLastNode(void **sentinel, void **node);
-char *GetNodeName(void **node);
-void SetNodeName(void **node, char *name);
-short *GetNodeAge(void **node);
-void SetNodeAge(void **node, short *age);
-char *GetNodePhone(void **node);
-void SetNodePhone(void **node, char *phone);
-void **GetPreviousNode(void **node);
-void SetPreviousNode(void **node, void **prevNode);
-void **GetNextNode(void **node);
-void SetNextNode(void **node, void **nextNode);
+void Clear(void *pBuffer);
+void Push(void *pBuffer);
+void Pop(void *pBuffer);
+void RemoveByName(void *pBuffer);
+void List(void *pBuffer);
+void ChangeHeapOrderPolicyAndOrderPriority(void *pBuffer);
 
-int main(int argc, char **argv) {
-    void **sentinel = Reset(NULL); // Initializing heap
+void *InitPBuffer();
+void FreePBufferAndExit();
+int *GetLengthAddr(void *pBuffer);
+void IncrementLength(int *length);
+void DecrementLength(int *length);
+void **GetOrderPolicyAddr(void *pBuffer);
+int *GetOrderPriorityAddr(void *pBuffer);
+void **GetFirstNodeAddr(void *pBuffer);
+void **GetLastNodeAddr(void *pBuffer);
+short *GetOptionAddr(void *pBuffer);
+char *GetTempNameAddr(void *pBuffer);
+void SetTempName(void *pBuffer, char *name);
+short *GetTempAgeAddr(void *pBuffer);
+char *GetTempPhoneAddr(void *pBuffer);
+void SetTempPhone(void *pBuffer, char *phone);
+int *GetTempHeapLengthAddr(void *pBuffer);
+void **GetTempHeapOrderPolicyAddr(void *pBuffer);
+int *GetTempHeapOrderPriorityAddr(void *pBuffer);
+void **GetTempHeapFirstNodeAddr(void *pBuffer);
+void **GetTempHeapLastNodeAddr(void *pBuffer);
+char *GetSearchNameAddr(void *pBuffer);
+short *GetHeapSelectionAddr(void *pBuffer);
+char *GetFormattedTempNameAddr(void *pBuffer);
+char *GetFormattedTempAgeAddr(void *pBuffer);
+char *GetFormattedTempPhoneAddr(void *pBuffer);
 
-    char *name, *phone;
-    short *age;
+char *GetNodeNameAddr(void *node);
+void SetNodeName(void *node, char *name);
+short *GetNodeAgeAddr(void *node);
+void SetNodeAge(void *node, short *age);
+char *GetNodePhoneAddr(void *node);
+void SetNodePhone(void *node, char *phone);
+void **GetPreviousNodeAddr(void *node);
+void SetPreviousNode(void *node, void *previous);
+void **GetNextNodeAddr(void *node);
+void SetNextNode(void *node, void *next);
 
-    InitializeNameAgePhone(&name, &age, &phone);
+int main() {
+    void *pBuffer = InitPBuffer();
+    
+    //atexit(&FreePBufferOnExit);
 
-    short *option = (short *) malloc(sizeof(short));
-    if (option == NULL) {
-        free(name);
-        free(age);
-        free(phone);
-        printf("Not enough memory :(\n");
-        exit(-1);
-    }
-    *option = 5;
+    signal(SIGINT, FreePBufferAndExit); // Used to handle Ctrl + C in the middle of program
 
     do {
         PrintMenu();
-        printf(">> ");
-        scanf("%hi", option);
-        scanf("%*c");
+        printf("Option: ");
+        scanf("%hi", GetOptionAddr(pBuffer));
+        while(fgetc(stdin) != '\n'); // Best way to flush stdin
 
-        switch (*option)
+        switch (*(GetOptionAddr(pBuffer)))
         {
             case 1:
                 // Routine to add an entry to the agenda
-                printf("Name: ");
-                scanf("%[^\n]*c", name);
-
-                printf("Age: ");
-                scanf("%hi", age);
-                scanf("%*c");
-                fflush(stdin);
-
-                printf("Phone: ");
-                scanf("%[^\n]*c", phone);
-
-                Push(sentinel, name, age, phone);
+                AddEntryOpt(pBuffer);
                 break;
-
             case 2:
                 // Routine to list all agenda entries
-                if (*GetLength(sentinel) <= 0) {
-                    printf("Empty agenda!\n");
-                    break;
-                }
-
-                List(&sentinel);
+                ListEntriesOpt(pBuffer);
                 break;
-
             case 3:
                 // Routine to remove the agenda first entry
-                if (*GetLength(sentinel) <= 0) {
-                    printf("Empty agenda!\n");
-                    break;
-                }
-
-                free(name);
-                free(age);
-                free(phone);
-
-                Pop(sentinel, &name, &age, &phone); // Problem here solved
-                PrintInfo(name, age, phone);
-
-                free(name);
-                free(age);
-                free(phone);
-
-                InitializeNameAgePhone(&name, &age, &phone);
-
+                RemoveFirstEntryOpt(pBuffer);
                 break;
-
             case 4:
                 // Routine to remove all entries with the informed name
-                if (*GetLength(sentinel) <= 0) {
-                    printf("Empty agenda!\n");
-                    break;
-                }
-
-                scanf("%9s", name);
-                RemoveByName(&sentinel, name);
+                RemoveEntryByNameOpt(pBuffer);
+                break;
+            case 5:
+                ChangeOrderOpt(pBuffer);
                 break;
         }
 
-    } while (*option != 5);
+    } while (*GetOptionAddr(pBuffer) != 6);
 
     // Freeing dynamically alocated memory
-    free(option);
-    free(name);
-    free(age);
-    free(phone);
-
-    // Freeing dynamically allocated data structure
-    Clear(sentinel);
-    free(*sentinel);
-    free(sentinel);
+    *GetHeapSelectionAddr(pBuffer) = 0;
+    Clear(pBuffer);
+    *GetHeapSelectionAddr(pBuffer) = 1;
+    Clear(pBuffer);
+    free(pBuffer);
 
     return 0;
 }
 
-// ---------------------------------------------------------
-// Lasy functions ------------------------------------------
+// --------------------------------------------------------------
+// Option functions ---------------------------------------------
 
-void InitializeNameAgePhone(char **name, short **age, char **phone) {
-    if (name == NULL || age == NULL || phone == NULL) {
-        printf("Please, contact the developer!\n");
-        exit(-1);
-    }
-    
-    *name = (char *) malloc(sizeof(char) * (NAME_LENGTH + 1));
-    if (*name == NULL) {
-        printf("Not enough memory :(\n");
-        exit(-1);
-    }
+void AddEntryOpt(void *pBuffer) {
+    printf("Name: ");
+    scanf("%9[^\n]", GetTempNameAddr(pBuffer));
+    while(fgetc(stdin) !='\n'); // Best way to flush stdin
 
-    *age = (short *) malloc(sizeof(short));
-    if (*age == NULL) {
-        free(*name);
-        printf("Not enough memory :(\n");
-        exit(-1);
-    }
+    printf("Age: ");
+    scanf("%hi", GetTempAgeAddr(pBuffer));
+    while(fgetc(stdin) != '\n');
 
-    *phone = (char *) malloc(sizeof(char) * (PHONE_LENGTH + 1));
-    if (*phone == NULL) {
-        free(*name);
-        free(*age);
-        printf("Not enough memory :(\n");
-        exit(-1);
-    }
+    printf("Phone: ");
+    scanf("%18[^\n]", GetTempPhoneAddr(pBuffer));
+    while(fgetc(stdin) != '\n');
+
+    *GetHeapSelectionAddr(pBuffer) = 0;
+    Push(pBuffer);
 }
 
+void ListEntriesOpt(void *pBuffer) {
+    if (*GetLengthAddr(pBuffer) <= 0) {
+        printf("Empty agenda!\n");
+        return;
+    }
 
-// ----------------------------------------------------------
-// CLI functions --------------------------------------------
+    List(pBuffer);
+}
+
+void RemoveFirstEntryOpt(void *pBuffer) {
+    if (*GetLengthAddr(pBuffer) <= 0) {
+        printf("Empty agenda!\n");
+        return;
+    }
+
+    *GetHeapSelectionAddr(pBuffer) = 0;
+    Pop(pBuffer);
+}
+
+void RemoveEntryByNameOpt(void *pBuffer) {
+    if (*GetLengthAddr(pBuffer) <= 0) {
+        printf("Empty agenda!\n");
+        return;
+    }
+
+    printf("Name: ");
+    scanf("%9[^\n]", GetSearchNameAddr(pBuffer));
+    while(fgetc(stdin) != '\n');
+    RemoveByName(pBuffer);
+}
+
+void ChangeOrderOpt(void *pBuffer) {
+    PrintOrderPolicyMenu();
+    printf("Order policy: ");
+    scanf("%hi", GetOptionAddr(pBuffer));
+
+    switch (*GetOptionAddr(pBuffer)) {
+        case 1:
+            *GetTempHeapOrderPolicyAddr(pBuffer) = &AlphabeticalOrderPolicy;
+            break;
+        case 2:
+            *GetTempHeapOrderPolicyAddr(pBuffer) = &AgeOrderPolicy;
+            break;
+        default:
+            return;
+    }
+
+    PrintOrderPriorityMenu();
+    printf("Order priority: ");
+    scanf("%hi", GetOptionAddr(pBuffer));
+
+    switch (*GetOptionAddr(pBuffer)) {
+        case 1:
+            *GetTempHeapOrderPriorityAddr(pBuffer) = ASC_ORDER;
+            break;
+        case 2:
+            *GetTempHeapOrderPriorityAddr(pBuffer) = DESC_ORDER;
+            break;
+        default:
+            return;
+    }
+
+    ChangeHeapOrderPolicyAndOrderPriority(pBuffer);
+}
+
+// ----------------------------------------------------------------
+// CLI functions --------------------------------------------------
 
 void PrintMenu() {
-    printf("=========================\n");
+    printf("-------------------------\n");
     printf("1) Add entry\n");
     printf("2) List all entries\n");
     printf("3) Remove first entry\n");
     printf("4) Remove entries by name\n");
-    printf("5) Exit\n");
-    printf("=========================\n");
+    printf("5) Change order\n");
+    printf("6) Exit\n");
+    printf("-------------------------\n");
 }
 
-void PrintHeader(char *borderChar) {
-    printf("-----------------------------------\n");
-    printf("|   Name   | Age |      Phone     |\n");
-    printf("-----------------------------------\n");
+void PrintOrderPolicyMenu() {
+    printf("-------------\n");
+    printf("1) Name order\n");
+    printf("2) Age order\n");
+    printf("-------------\n");
 }
 
-void PrintInfo(char *name, short *age, char *phone) {
-    int *nameLen = (int *) malloc(sizeof(int));
-    if (nameLen == NULL)
-        return;
-    *nameLen = strlen(name);
-
-    char *ageStr = (char *) malloc(sizeof(char) * 6);
-    if (ageStr == NULL) {
-        free(nameLen);
-        return;
-    }
-    sprintf(ageStr, "%hi", *age);
-
-    int *ageLen = (int *) malloc(sizeof(int));
-    if (ageLen == NULL) {
-        free(nameLen);
-        free(ageStr);
-        return;
-    }
-    *ageLen = strlen(ageStr);
-
-    int *phoneLen = (int *) malloc(sizeof(int));
-    if (phoneLen == NULL) {
-        free(nameLen);
-        free(ageStr);
-        free(ageLen);
-        return;
-    }
-    *phoneLen = strlen(phone);
-
-    int *borderLen = (int *) malloc(sizeof(int));
-    if (borderLen == NULL) {
-        free(nameLen);
-        free(ageStr);
-        free(ageLen);
-        free(phoneLen);
-        return;
-    }
-    *borderLen = (10 + *nameLen + *phoneLen + *ageLen);
-
-    char *border = (char *) malloc(sizeof(char) * (*borderLen + 1));
-    if (border == NULL) {
-        free(nameLen);
-        free(ageStr);
-        free(ageLen);
-        free(phoneLen);
-        free(borderLen);
-        return;
-    }
-
-    memset(border, '-', *borderLen);
-    *(border + *borderLen) = '\0';
-
-    printf("%s\n", border);
-    printf("| %s | %hi | %s |\n", name, *age, phone);
-    printf("%s\n", border);
-
-    free(nameLen);
-    free(ageStr);
-    free(ageLen);
-    free(phoneLen);
-    free(borderLen);
-    free(border);
+void PrintOrderPriorityMenu() {
+    printf("-------------------\n");
+    printf("1) Ascending order\n");
+    printf("2) Descending order\n");
+    printf("-------------------\n");
 }
 
-// ----------------------------------------------------------
-// Extended Heap functions ----------------------------------
-
-void List(void ***sentinel) {
-    void **newSentinel = Reset(NULL);
-
-    char *name;
-    short *age;
-    char *phone;
-
-    PrintHeader(NULL);
-
-    while (*GetLength(*sentinel) > 0 && GetFirstNode(*sentinel) != NULL) {
-        Pop(*sentinel, &name, &age, &phone);
-        Push(newSentinel, name, age, phone);
-
-        PrintInfo(name, age, phone);
-
-        free(name);
-        free(age);
-        free(phone); // double free
-    }
-
-    free(**sentinel);
-    free(*sentinel);
-
-    *sentinel = newSentinel;
+void PrintHeader() {
+    printf("------------------------------------------\n");
+    printf("| Name      | Age   | Phone              |\n");
+    printf("------------------------------------------\n");
 }
 
-void RemoveByName(void ***sentinel, char *targetName) {
-    void **newSentinel = Reset(NULL);
+/*
+============================================================
+void PrintInfo(void *pBuffer)
 
-    char *name;
-    short *age;
-    char *phone;   
+    This function will pad the name, age and phone with a 
+    predefined length and print it on screen.
 
-    while (*GetLength(*sentinel) > 0 && GetFirstNode(*sentinel) != NULL) {
-        Pop(*sentinel, &name, &age, &phone);
+============================================================
+*/
+void PrintInfo(void *pBuffer) {
+    // Operations to pad name, age and phone with whitespaces at the end
+    strcpy(GetFormattedTempNameAddr(pBuffer), GetTempNameAddr(pBuffer));
+    memset(GetFormattedTempNameAddr(pBuffer) + strlen(GetTempNameAddr(pBuffer)), ' ', (NAME_LENGTH - strlen(GetTempNameAddr(pBuffer))));
+    sprintf(GetFormattedTempAgeAddr(pBuffer), "%hi", *GetTempAgeAddr(pBuffer));
+    memset(GetFormattedTempAgeAddr(pBuffer) + strlen(GetFormattedTempAgeAddr(pBuffer)), ' ', (AGE_LENGTH - strlen(GetFormattedTempAgeAddr(pBuffer))));
+    strcpy(GetFormattedTempPhoneAddr(pBuffer), GetTempPhoneAddr(pBuffer));
+    memset(GetFormattedTempPhoneAddr(pBuffer) + strlen(GetTempPhoneAddr(pBuffer)), ' ', (PHONE_LENGTH - strlen(GetTempPhoneAddr(pBuffer))));
 
-        if (strcmp(name, targetName) != 0) {
-            Push(newSentinel, name, age, phone);
-        }
+    printf("------------------------------------------\n");
+    printf("| %s | %s | %s |\n", GetFormattedTempNameAddr(pBuffer), GetFormattedTempAgeAddr(pBuffer), GetFormattedTempPhoneAddr(pBuffer));
+    printf("------------------------------------------\n");
+}
 
-        free(name);
-        free(age);
-        free(phone);
-    }
+// ----------------------------------------------------------------
+// Order Policies callbacks ---------------------------------------
 
-    free(**sentinel);
-    free(*sentinel);
+int AlphabeticalOrderPolicy(void *value1, void *value2) {
+    if (strcasecmp(GetNodeNameAddr((char *) value1), GetNodeNameAddr((char *) value2)) >= 1)
+        return 1;
+    else if (strcasecmp(GetNodeNameAddr((char *) value1), GetNodeNameAddr((char *) value2)) == 0)
+        return 0;
+    return -1;
+}
 
-    *sentinel = newSentinel;
+int AgeOrderPolicy(void *value1, void *value2) {
+    if (*GetNodeAgeAddr((int *) value1) > *GetNodeAgeAddr((int *) value2))
+        return 1;
+    else if (*GetNodeAgeAddr((int *) value1) == *GetNodeAgeAddr((int *) value2))
+        return 0;
+    return -1;
 }
 
 // ------------------------------------------------------------
 // Heap functions ---------------------------------------------
 
-void **Reset(void **sentinel) {
-    if (sentinel != NULL) {
-        Clear(sentinel);
-        free(*sentinel); // dinamically allocated length
-        free(sentinel);
+void Clear(void *pBuffer) {
+    if (!pBuffer)
+        return;
+
+    int *lengthAddr;
+    void **firstNodeAddr;
+
+    // The above if else is to decide with which heap the operations will occur
+    if (*GetHeapSelectionAddr(pBuffer) == 0) {
+        lengthAddr = GetLengthAddr(pBuffer);
+        firstNodeAddr = GetFirstNodeAddr(pBuffer);
+    }
+    else {
+        lengthAddr = GetTempHeapLengthAddr(pBuffer);
+        firstNodeAddr = GetTempHeapFirstNodeAddr(pBuffer);
     }
 
-    void **newSentinel = (void **) malloc(sizeof(void *) * 3); // allocating
-    if (newSentinel == NULL) {
-        printf("Not enough memory :(\n");
-        exit(-1);
-    }
-
-    int *length = (int *) malloc(sizeof(int));
-    if (length == NULL) {
-        printf("Not enough memory :(\n");
-        free(newSentinel);
-        exit(-1);
-    }
-    *length = 0;
-
-    SetLength(newSentinel, length); // heap length
-    SetFirstNode(newSentinel, NULL); // first node
-    SetLastNode(newSentinel, NULL); // last node
-
-    return newSentinel;
-}
-
-void Clear(void **sentinel) {
-    char *name;
-    short *age;
-    char *phone;
-    while (*GetLength(sentinel) > 0 && GetFirstNode(sentinel) != NULL) {
-        Pop(sentinel, &name, &age, &phone);
-        free(name);
-        free(age);
-        free(phone);
+    while (*lengthAddr > 0 && *firstNodeAddr != NULL) {
+        Pop(pBuffer);
     }
 }
 
-void Push(void **sentinel, char *name, short *age, char *phone) {
-    if (sentinel == NULL || name == NULL || age == NULL || phone == NULL)
+void Push(void *pBuffer) {
+    if (!pBuffer)
         return;
 
-    void **node = (void **) malloc(sizeof(void *) * 5);
-    if (node == NULL)
+    void *node = (void *) malloc(sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1) + sizeof(void *) + sizeof(void *));
+    if (!node)
         return;
 
-    char *nodeName, *nodePhone;
-    short *nodeAge;
-
-    InitializeNameAgePhone(&nodeName, &nodeAge, &nodePhone);
-    
-    strcpy(nodeName, name);
-    SetNodeName(node, nodeName);
-    
-    *nodeAge = *age;
-    SetNodeAge(node, nodeAge);
-
-    strcpy(nodePhone, phone);
-    SetNodePhone(node, nodePhone);
-
+    SetNodeName(node, GetTempNameAddr(pBuffer));
+    SetNodeAge(node, GetTempAgeAddr(pBuffer));
+    SetNodePhone(node, GetTempPhoneAddr(pBuffer));
     SetPreviousNode(node, NULL);
     SetNextNode(node, NULL);
 
-    void **tempNode = GetFirstNode(sentinel);
+    int *lengthAddr, *orderPriorityAddr;
+    void **firstNodeAddr, **lastNodeAddr, *tempNode;
+    int (*orderPolicy) (void *value1, void *value2); // Callback function
+
+    // Heap selection
+    if (*GetHeapSelectionAddr(pBuffer) == 0) {
+        lengthAddr = GetLengthAddr(pBuffer);
+        orderPolicy = *GetOrderPolicyAddr(pBuffer);
+        orderPriorityAddr = GetOrderPriorityAddr(pBuffer);
+        firstNodeAddr = GetFirstNodeAddr(pBuffer);
+        lastNodeAddr = GetLastNodeAddr(pBuffer);
+    }
+    else {
+        lengthAddr = GetTempHeapLengthAddr(pBuffer);
+        orderPolicy = *GetTempHeapOrderPolicyAddr(pBuffer);
+        orderPriorityAddr = GetTempHeapOrderPriorityAddr(pBuffer);
+        firstNodeAddr = GetTempHeapFirstNodeAddr(pBuffer);
+        lastNodeAddr = GetTempHeapLastNodeAddr(pBuffer);
+    }
+
+    tempNode = *firstNodeAddr;
+
     if (tempNode == NULL) {
-        // Identify that this is heap first node
-        SetFirstNode(sentinel, node);
-        SetLastNode(sentinel, node);
+        // First heap entry
+        *firstNodeAddr = node;
+        *lastNodeAddr = node;
         
-        IncrementLength(sentinel);
+        IncrementLength(lengthAddr);
         return;
     }
 
-    while (strcmp(GetNodeName(node), GetNodeName(tempNode)) >= ASC_ORDER) {
-        // While new node name is alphabetically after tempNode name...
-        if (GetNextNode(tempNode) == NULL) {
-            // Check if there isn't more nodes in the heap and adding at the end of the heap
-            SetNextNode(tempNode, node);
-            SetLastNode(sentinel, node);
+    while ((*orderPolicy)(GetNodeNameAddr(node), GetNodeNameAddr(tempNode)) != *orderPriorityAddr) {
+        if (*GetNextNodeAddr(tempNode) == NULL) {
+            // Add to the heap end
             SetPreviousNode(node, tempNode);
+            SetNextNode(tempNode, node);
+            *lastNodeAddr = node;
     
-            // Increment length
-            IncrementLength(sentinel);
+            IncrementLength(lengthAddr);
             return;
         }
 
-        tempNode = GetNextNode(tempNode);
+        tempNode = *GetNextNodeAddr(tempNode);
     }
 
-    if (GetFirstNode(sentinel) == tempNode)
-        SetFirstNode(sentinel, node);
-    else
-        SetNextNode(GetPreviousNode(tempNode), node);
+    // Add at the middle of heap
 
-    SetPreviousNode(node, GetPreviousNode(tempNode));
+    if (*firstNodeAddr == tempNode) // Check if the new node will be the first or not
+        *firstNodeAddr = node;
+    else
+        SetNextNode(*GetPreviousNodeAddr(tempNode), node);
+
+    SetPreviousNode(node, *GetPreviousNodeAddr(tempNode));
     SetPreviousNode(tempNode, node);
     SetNextNode(node, tempNode);
 
     // Increment length
-    IncrementLength(sentinel);
+    IncrementLength(lengthAddr);
 }
 
-void Pop(void **sentinel, char **name, short **age, char **phone) {
-    if (sentinel == NULL)
+void Pop(void *pBuffer) {
+    if (pBuffer == NULL)
         return;
 
-    void **firstNode = GetFirstNode(sentinel);
-    if (firstNode == NULL)
-        return;
+    int *lengthAddr;
+    void **firstNodeAddr, **lastNodeAddr, *tempNode;
 
-    *(name) = GetNodeName(firstNode);
-    *(age) = GetNodeAge(firstNode);
-    *(phone) = GetNodePhone(firstNode);
+    // Heap selection
+    if (*GetHeapSelectionAddr(pBuffer) == 0) {
+        lengthAddr = GetLengthAddr(pBuffer);
+        firstNodeAddr = GetFirstNodeAddr(pBuffer);
+        lastNodeAddr = GetLastNodeAddr(pBuffer);    
+    }
+    else {
+        lengthAddr = GetTempHeapLengthAddr(pBuffer);
+        firstNodeAddr = GetTempHeapFirstNodeAddr(pBuffer);
+        lastNodeAddr = GetTempHeapLastNodeAddr(pBuffer);
+    }
 
-    void **nextNode = GetNextNode(firstNode);
+    tempNode = *firstNodeAddr;
 
-    if (nextNode != NULL) {
-        SetNextNode(firstNode, NULL);
+    SetTempName(pBuffer, GetNodeNameAddr(tempNode));
+    *GetTempAgeAddr(pBuffer) = *GetNodeAgeAddr(tempNode);
+    SetTempPhone(pBuffer, GetNodePhoneAddr(tempNode));
+
+    void *nextNode = *GetNextNodeAddr(tempNode);
+
+    if (nextNode) {
+        SetNextNode(tempNode, NULL);
         SetPreviousNode(nextNode, NULL);
-        SetFirstNode(sentinel, nextNode);
+        *firstNodeAddr = nextNode;
     }
     else {
         // If there isn't more node in the heap
-        SetFirstNode(sentinel, NULL);
-        SetLastNode(sentinel, NULL);
+        *firstNodeAddr = NULL;
+        *lastNodeAddr = NULL;
     }
 
-    DecrementLength(sentinel);
-    free(firstNode);
+    DecrementLength(lengthAddr);
+    free(tempNode);
 }
 
-// ---------------------------------------------------
-// Sentinel functions --------------------------------
+// ----------------------------------------------------------
+// Extended Heap functions ----------------------------------
 
-int *GetLength(void **sentinel) {
-    int *length = (int *) *sentinel;
-    return length;
+void List(void *pBuffer) {
+    PrintHeader();
+
+    while (*GetLengthAddr(pBuffer) > 0 && *GetFirstNodeAddr(pBuffer) != NULL) {
+        // Loop while heap length greater than 0 and heap first node different of null (just for caution)
+        *GetHeapSelectionAddr(pBuffer) = 0;
+        Pop(pBuffer);
+        *GetHeapSelectionAddr(pBuffer) = 1;
+        Push(pBuffer);
+
+        PrintInfo(pBuffer);
+    }
+
+    // Cloning temp heap to main heap
+    *GetHeapSelectionAddr(pBuffer) = 0;
+    *GetLengthAddr(pBuffer) = *GetTempHeapLengthAddr(pBuffer);
+    *GetFirstNodeAddr(pBuffer) = *GetTempHeapFirstNodeAddr(pBuffer);
+    *GetLastNodeAddr(pBuffer) = *GetTempHeapLastNodeAddr(pBuffer);
+    *GetTempHeapLengthAddr(pBuffer) = 0;
+    *GetTempHeapFirstNodeAddr(pBuffer) = NULL;
+    *GetTempHeapLastNodeAddr(pBuffer) = NULL;
 }
 
-void SetLength(void **sentinel, int *length) {
-    *sentinel = length;
+void RemoveByName(void *pBuffer) {
+    while (*GetLengthAddr(pBuffer) > 0 && *GetFirstNodeAddr(pBuffer) != NULL) {
+        *GetHeapSelectionAddr(pBuffer) = 0;
+        Pop(pBuffer);
+
+        if (strcmp(GetTempNameAddr(pBuffer), GetSearchNameAddr(pBuffer)) != 0) {
+            *GetHeapSelectionAddr(pBuffer) = 1;
+            Push(pBuffer);
+        }
+    }
+
+    // Cloning temp heap to main heap
+    *GetHeapSelectionAddr(pBuffer) = 0;
+    *GetLengthAddr(pBuffer) = *GetTempHeapLengthAddr(pBuffer);
+    *GetFirstNodeAddr(pBuffer) = *GetTempHeapFirstNodeAddr(pBuffer);
+    *GetLastNodeAddr(pBuffer) = *GetTempHeapLastNodeAddr(pBuffer);
+    *GetTempHeapLengthAddr(pBuffer) = 0;
+    *GetTempHeapFirstNodeAddr(pBuffer) = NULL;
+    *GetTempHeapLastNodeAddr(pBuffer) = NULL;
 }
 
-void IncrementLength(void **sentinel) {
-    int *len = (int *) *sentinel;
-    *len = *len + 1;
+void ChangeHeapOrderPolicyAndOrderPriority(void *pBuffer) {
+    if (!pBuffer)
+        return;
+
+    while (*GetLengthAddr(pBuffer) > 0 && *GetFirstNodeAddr(pBuffer) != NULL) {
+        *GetHeapSelectionAddr(pBuffer) = 0;
+        Pop(pBuffer);
+        *GetHeapSelectionAddr(pBuffer) = 1;
+        Push(pBuffer);
+    }
+
+    *GetHeapSelectionAddr(pBuffer) = 0;
+    *GetLengthAddr(pBuffer) = *GetTempHeapLengthAddr(pBuffer);
+    *GetOrderPolicyAddr(pBuffer) = *GetTempHeapOrderPolicyAddr(pBuffer);
+    *GetOrderPriorityAddr(pBuffer) = *GetTempHeapOrderPriorityAddr(pBuffer);
+    *GetFirstNodeAddr(pBuffer) = *GetTempHeapFirstNodeAddr(pBuffer);
+    *GetLastNodeAddr(pBuffer) = *GetTempHeapLastNodeAddr(pBuffer);
+    *GetTempHeapLengthAddr(pBuffer) = 0;
+    *GetTempHeapFirstNodeAddr(pBuffer) = NULL;
+    *GetTempHeapLastNodeAddr(pBuffer) = NULL;
 }
 
-void DecrementLength(void **sentinel) {
-    int *len = (int *) *sentinel;
-    *len = *len - 1;
+// ------------------------------------------------------------
+// pBuffer functions ------------------------------------------
+
+void *InitPBuffer() {
+    void *pBuffer = (void *) malloc(sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1) + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(char) * (AGE_LENGTH + 1) + sizeof(char) * (PHONE_LENGTH + 1));
+    if (!pBuffer) {
+        perror("Error");
+        //fprintf(stderr, "Not enough memory :(\n");
+        exit(-1);
+    }
+
+    dontForgetMe = pBuffer;
+
+    *GetLengthAddr(pBuffer) = 0;
+    *GetOrderPolicyAddr(pBuffer) = &AlphabeticalOrderPolicy;
+    *GetOrderPriorityAddr(pBuffer) = ASC_ORDER;
+    *GetFirstNodeAddr(pBuffer) = NULL;
+    *GetLastNodeAddr(pBuffer) = NULL;
+    memset(GetTempNameAddr(pBuffer), '\0', (NAME_LENGTH + 1));
+    *GetTempAgeAddr(pBuffer) = 0;
+    memset(GetTempPhoneAddr(pBuffer), '\0', (PHONE_LENGTH + 1));
+    *GetOptionAddr(pBuffer) = 6;
+    *GetTempHeapLengthAddr(pBuffer) = 0;
+    *GetTempHeapOrderPolicyAddr(pBuffer) = &AlphabeticalOrderPolicy;
+    *GetTempHeapOrderPriorityAddr(pBuffer) = ASC_ORDER;
+    *GetTempHeapFirstNodeAddr(pBuffer) = NULL;
+    *GetTempHeapLastNodeAddr(pBuffer) = NULL;
+    memset(GetSearchNameAddr(pBuffer), '\0', NAME_LENGTH + 1);
+    *GetHeapSelectionAddr(pBuffer) = 0;
+    //strcpy(GetFormattedTempNameAddr(pBuffer), "\0");
+    memset(GetFormattedTempNameAddr(pBuffer), '\0', NAME_LENGTH + 1);
+    //strcpy(GetFormattedTempAgeAddr(pBuffer), "\0");
+    memset(GetFormattedTempAgeAddr(pBuffer), '\0', AGE_LENGTH + 1);
+    //strcpy(GetFormattedTempPhoneAddr(pBuffer), "\0");
+    memset(GetFormattedTempPhoneAddr(pBuffer), '\0', PHONE_LENGTH + 1);
+
+    return pBuffer;    
 }
 
-void **GetFirstNode(void **sentinel) {
-    return *(sentinel + 1);
+void FreePBufferAndExit() {
+    *GetHeapSelectionAddr(dontForgetMe) = 0;
+    Clear(dontForgetMe);
+    *GetHeapSelectionAddr(dontForgetMe) = 1;
+    Clear(dontForgetMe);
+    free(dontForgetMe);
+    exit(0);
 }
 
-void SetFirstNode(void **sentinel, void **node) {
-    *(sentinel + 1) = node;
+int *GetLengthAddr(void *pBuffer) {
+    return (int *) pBuffer;
 }
 
-void **GetLastNode(void **sentinel) {
-    return *(sentinel + 2);
+void IncrementLength(int *length) {
+    *length = *length + 1;
 }
 
-void SetLastNode(void **sentinel, void **node) {
-    *(sentinel + 2) = node;
+void DecrementLength(int *length) {
+    *length = *length - 1;
+}
+
+void **GetOrderPolicyAddr(void *pBuffer) {
+    return (void **) (pBuffer + sizeof(int));
+}
+
+int *GetOrderPriorityAddr(void *pBuffer) {
+    return (int *) (pBuffer + sizeof(int) + sizeof(void *));
+}
+
+void **GetFirstNodeAddr(void *pBuffer) {
+    return (void **) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int));
+}
+
+void **GetLastNodeAddr(void *pBuffer) {
+    return (void **) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *));
+}
+
+short *GetOptionAddr(void *pBuffer) {
+    return (short *) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *));
+}
+
+char *GetTempNameAddr(void *pBuffer) {
+    return (char *) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short));
+}
+
+void SetTempName(void *pBuffer, char *name) {
+    strcpy(GetTempNameAddr(pBuffer), name);
+}
+
+short *GetTempAgeAddr(void *pBuffer) {
+    return (short *) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1));
+}
+
+char *GetTempPhoneAddr(void *pBuffer) {
+    return (char *) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short));
+}
+
+void SetTempPhone(void *pBuffer, char *phone) {
+    strcpy(GetTempPhoneAddr(pBuffer), phone);
+}
+
+int *GetTempHeapLengthAddr(void *pBuffer) {
+    return (int *) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1));
+}
+
+void **GetTempHeapOrderPolicyAddr(void *pBuffer) {
+    return (void **) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1) + sizeof(int));
+}
+
+int *GetTempHeapOrderPriorityAddr(void *pBuffer) {
+    return (int *) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1) + sizeof(int) + sizeof(void *));
+}
+
+void **GetTempHeapFirstNodeAddr(void *pBuffer) {
+    return (void **) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1) + sizeof(int) + sizeof(void *) + sizeof(int));
+}
+
+void **GetTempHeapLastNodeAddr(void *pBuffer) {
+    return (void **) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1) + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *));
+}
+
+char *GetSearchNameAddr(void *pBuffer) {
+    return (char *) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1) + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *));
+}
+
+short *GetHeapSelectionAddr(void *pBuffer) {
+    return (short *) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1) + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(char) * (NAME_LENGTH + 1));
+}
+
+char *GetFormattedTempNameAddr(void *pBuffer) {
+    return (char *) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1) + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short));
+}
+
+char *GetFormattedTempAgeAddr(void *pBuffer) {
+    return (char *) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1) + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1));
+}
+
+char *GetFormattedTempPhoneAddr(void *pBuffer) {
+    return (char *) (pBuffer + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1) + sizeof(int) + sizeof(void *) + sizeof(int) + sizeof(void *) + sizeof(void *) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (NAME_LENGTH + 1) + sizeof(char) * (AGE_LENGTH + 1));
 }
 
 // -----------------------------------------------------
 // Node functions --------------------------------------
 
-char *GetNodeName(void **node) {
-    return (char *) *node;
+char *GetNodeNameAddr(void *node) {
+    return (char *) node;
 }
 
-void SetNodeName(void **node, char *name) {
-    *(node) = name;
+void SetNodeName(void *node, char *name) {
+    strcpy(GetNodeNameAddr(node), name);
 }
 
-short *GetNodeAge(void **node) {
-    return (short *) *(node + 1);
+short *GetNodeAgeAddr(void *node) {
+    return (short *) (node + sizeof(char) * (NAME_LENGTH + 1));
 }
 
-void SetNodeAge(void **node, short *age) {
-    *(node + 1) = age;
+void SetNodeAge(void *node, short *age) {
+    *GetNodeAgeAddr(node) = *age;
 }
 
-char *GetNodePhone(void **node) {
-    return (char *) *(node + 2);
+char *GetNodePhoneAddr(void *node) {
+    return (char *) (node + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short));
 }
 
-void SetNodePhone(void **node, char *phone) {
-    *(node + 2) = phone;
+void SetNodePhone(void *node, char *phone) {
+    strcpy(GetNodePhoneAddr(node), phone);
 }
 
-void **GetPreviousNode(void **node) {
-    return *(node + 3);
+void **GetPreviousNodeAddr(void *node) {
+    return (void **) (node + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1));
 }
 
-void SetPreviousNode(void **node, void **prevNode) {
-    *(node + 3) = prevNode;
+void SetPreviousNode(void *node, void *previous) {
+    void **previousNodeAddr = GetPreviousNodeAddr(node);
+    *previousNodeAddr = previous;
 }
 
-void **GetNextNode(void **node) {
-    return *(node + 4);
+void **GetNextNodeAddr(void *node) {
+    return (void **) (node + sizeof(char) * (NAME_LENGTH + 1) + sizeof(short) + sizeof(char) * (PHONE_LENGTH + 1) + sizeof(void *));
 }
 
-void SetNextNode(void **node, void **nextNode) {
-    *(node + 4) = nextNode;
+void SetNextNode(void *node, void *next) {
+    void **nextNodeAddr = GetNextNodeAddr(node);
+    *nextNodeAddr = next;
 }
-
 // ------------------------------------------------------

@@ -1,0 +1,101 @@
+-------------------------
+1) Add entry
+2) List all entries
+3) Remove first entry
+4) Remove entries by name
+5) Change order
+6) Exit
+-------------------------
+Option: Name: Age: Phone: -------------------------
+1) Add entry
+2) List all entries
+3) Remove first entry
+4) Remove entries by name
+5) Change order
+6) Exit
+-------------------------
+Option: ------------------------------------------
+| Name      | Age   | Phone              |
+------------------------------------------
+------------------------------------------
+| Gabriel   | 41    | 341234123          |
+------------------------------------------
+-------------------------
+1) Add entry
+2) List all entries
+3) Remove first entry
+4) Remove entries by name
+5) Change order
+6) Exit
+-------------------------
+Option: Name: Age: Phone: -------------------------
+1) Add entry
+2) List all entries
+3) Remove first entry
+4) Remove entries by name
+5) Change order
+6) Exit
+-------------------------
+Option: ------------------------------------------
+| Name      | Age   | Phone              |
+------------------------------------------
+------------------------------------------
+| Gabriel   | 41    | 341234123          |
+------------------------------------------
+------------------------------------------
+| Gabriel   | 12    | 43151341234        |
+------------------------------------------
+-------------------------
+1) Add entry
+2) List all entries
+3) Remove first entry
+4) Remove entries by name
+5) Change order
+6) Exit
+-------------------------
+Option: Name: Age: Phone: -------------------------
+1) Add entry
+2) List all entries
+3) Remove first entry
+4) Remove entries by name
+5) Change order
+6) Exit
+-------------------------
+Option: ------------------------------------------
+| Name      | Age   | Phone              |
+------------------------------------------
+------------------------------------------
+| Gabriel   | 41    | 341234123          |
+------------------------------------------
+------------------------------------------
+| Gabriel   | 12    | 43151341234        |
+------------------------------------------
+------------------------------------------
+| Gabriel   | 23    | 3142312341         |
+------------------------------------------
+-------------------------
+1) Add entry
+2) List all entries
+3) Remove first entry
+4) Remove entries by name
+5) Change order
+6) Exit
+-------------------------
+Option: Name: -------------------------
+1) Add entry
+2) List all entries
+3) Remove first entry
+4) Remove entries by name
+5) Change order
+6) Exit
+-------------------------
+Option: Empty agenda!
+-------------------------
+1) Add entry
+2) List all entries
+3) Remove first entry
+4) Remove entries by name
+5) Change order
+6) Exit
+-------------------------
+Option: 

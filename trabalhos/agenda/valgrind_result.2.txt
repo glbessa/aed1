@@ -1,0 +1,14 @@
+==112240== Memcheck, a memory error detector
+==112240== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==112240== Using Valgrind-3.20.0 and LibVEX; rerun with -h for copyright info
+==112240== Command: ./agenda
+==112240== Parent PID: 112239
+==112240== 
+==112240== 
+==112240== HEAP SUMMARY:
+==112240==     in use at exit: 0 bytes in 0 blocks
+==112240==   total heap usage: 30 allocs, 30 frees, 9,605 bytes allocated
+==112240== 
+==112240== All heap blocks were freed -- no leaks are possible
+==112240== 
+==112240== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
