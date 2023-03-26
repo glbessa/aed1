@@ -29,7 +29,7 @@ static void *dontForgetMe = NULL; // Used only in FreePBufferOnExit()
 // 13 => void *tempHeapLastNode
 // 14 => char *searchName
 // 15 => char *formattedName
-// 16 => short formattedAge
+// 16 => char *formattedAge
 // 17 => char *formattedPhone
 
 // Node structure
