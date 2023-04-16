@@ -1,27 +1,27 @@
-#ifndef STDLIB_H
-#include <stdlib.h>
-#define STDLIB_H
-#endif
+#ifndef BINARY_TREE_T
+#define BINARY_TREE_T
 
-typedef struct binaryTreeNode_t binaryTreeNode_t;
-struct binaryTreeNode_t {
-    void *value;
-    binaryTreeNode_t *left;
-    binaryTreeNode_t *right;
-};
+#include <stdio.h>
+#include <stdlib.h>
 
 typedef struct binaryTree_t binaryTree_t;
 struct binaryTree_t {
-    unsigned int depth;
-    unsigned int heigth;
-    binaryTreeNode_t *root;
-};
-
-typedef struct binaryNodeWithParent_t binaryNodeWithParent_t;
-struct binaryNodeWithParent_t {
-    binaryNodeWithParent_t *parent;
     void *value;
-    binaryNodeWithParent_t *left;
-    binaryNodeWithParent_t *right;
+    binaryTree_t *parent;
+    binaryTree_t *left;
+    binaryTree_t *right;
 };
 
+int CmpNodeValueInt(void *value1, void *value2);
+
+binaryTree_t *BTCreateNode(void *nodeValue);
+int BTHeight(binaryTree_t *tree);
+int BTIsLeaf(binaryTree_t *tree);
+void BTClear(binaryTree_t *tree);
+void *BTInsert(binaryTree_t *tree, void *value);
+int BTFind(binaryTree_t *tree, void *value);
+void BTListPreOrder(binaryTree_t *tree);
+void BTListInOrder(binaryTree_t *tree);
+void BTListPostOrder(binaryTree_t *tree);
+
+#endif
