@@ -1,4 +1,4 @@
-# Trabalho prático 2 - Tree Diameter
+# Trabalho prático 3 - Tree Diameter
 
 Autor: Gabriel Leite Bessa [gabriel.lb@inf.ufpel.edu.br](mailto:gabriel.lb@inf.ufpel.edu.br)
 
