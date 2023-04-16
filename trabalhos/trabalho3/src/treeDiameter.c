@@ -8,6 +8,7 @@ struct TreeNode {
 };
 
 struct TreeNode *BTCreateNode(int val);
+void BTClear(struct TreeNode *root);
 int BTHeight(struct TreeNode *root);
 int diameterOfBinaryTree(struct TreeNode *root);
 
@@ -35,6 +36,10 @@ int main() {
     printf("Diâmetro árvore 2: %i\n", diameterOfBinaryTree(tree2));
     printf("Diâmetro árvore 3: %i\n", diameterOfBinaryTree(tree3));
 
+    BTClear(tree1);
+    BTClear(tree2);
+    BTClear(tree3);
+
     return 0;
 }
 
@@ -51,6 +56,26 @@ struct TreeNode *BTCreateNode(int val) {
     node->right = NULL;
 
     return node;
+}
+
+// ---------------------------------------
+// void BTClear(struct TreeNode *root)
+//
+//      Limpa cada nó de uma árvore passa-
+//      da como argumento.
+// ---------------------------------------
+void BTClear(struct TreeNode *root) {
+    if (root == NULL)
+        return;
+
+    if (root->left != NULL) {
+        BTClear(root->left);
+    }
+    if (root->right != NULL) {
+        BTClear(root->right);
+    }
+
+    free(root);
 }
 
 // ------------------------------------

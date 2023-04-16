@@ -23,6 +23,8 @@ Compilar: `make compile`
 
 Executar: `make run`
 
+Executar com o valgrind: `make run-valgrind`
+
 ## Funcionamento
 
 Tudo está funcionando conforme esperado.
