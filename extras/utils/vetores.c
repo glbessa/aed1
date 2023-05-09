@@ -3,8 +3,8 @@
 int *PiorCaso(int n) {
     int *array = (int *) malloc(sizeof(int) * n);
 
-    for (int i = n - 1; i >= 0; i--) {
-        *(array + i) = i;
+    for (int i = 0; i < n; i++) {
+        *(array + i) = n - i;
     }
 
     return array;
